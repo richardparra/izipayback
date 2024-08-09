@@ -6,7 +6,9 @@ const { config } = require('../helpers/config');
 const { ID_TIENDA, PASSWORD, CLAVE_HMAC_SHA_256 } = config();
 
 const createFormToken = async (paymentConf) => {
-    const createPaymentEndPoint = `https://${ID_TIENDA}:${PASSWORD}@api.micuentaweb.pe/api-payment/V4/Charge/CreatePayment`
+    console.log("tienda:"+ID_TIENDA);
+    const createPaymentEndPoint = `https://${ID_TIENDA}:${PASSWORD}@api.micuentaweb.pe/api-payment/V4/Charge/CreatePayment`;
+    //const createPaymentEndPoint = `https://${ID_TIENDA}:${PASSWORD}@sandbox-checkout.izipay.pe/apidemo/v1/Token/Generate`;
     try {
         const response = await axios.post(createPaymentEndPoint, paymentConf, {
             headers: { 'Content-Type': 'application/json' }
@@ -16,6 +18,8 @@ const createFormToken = async (paymentConf) => {
         throw error;
     }
 }
+
+
 
 const checkHash = (answer, hash, hashKey) => {
     let key = '';
@@ -28,4 +32,19 @@ const checkHash = (answer, hash, hashKey) => {
     return hash === answerHash;
 };
 
-module.exports = { createFormToken, checkHash };
+const token2Service = async (body, transactionid) => {
+    console.log("tienda:"+ID_TIENDA);
+    //const createPaymentEndPoint = `https://testapi-pw.izipay.pe/security/v1/Token/Generate`;
+    const createPaymentEndPoint = `https://sandbox-api-pw.izipay.pe/security/v1/Token/Generate`;
+    //const createPaymentEndPoint = `https://${ID_TIENDA}:${PASSWORD}@sandbox-checkout.izipay.pe/apidemo/v1/Token/Generate`;
+    try {
+        const response = await axios.post(createPaymentEndPoint, body, {
+            headers: { 'Content-Type': 'application/json','transactionId': transactionid }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+module.exports = { createFormToken, checkHash, token2Service };

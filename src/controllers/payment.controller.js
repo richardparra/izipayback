@@ -1,7 +1,10 @@
-const {createFormToken, checkHash} = require("../services/payment.service");
+const {createFormToken,token2Service, checkHash} = require("../services/payment.service");
 
 const createPayment = async  (req, res) => {
-  const {} = req.body;
+  console.log("begin");
+  const paymentConf = req.body;
+  
+  /*
   const paymentConf = {
     amount: 10 * 100,
     currency: "PEN",
@@ -11,6 +14,8 @@ const createPayment = async  (req, res) => {
     },
     orderId: `order-${ new Date().getTime() }`
   }
+  */
+
   try {
     const response = await createFormToken(paymentConf);
     if( response.status !== "SUCCESS") return res.status(400).json(response);
@@ -65,5 +70,61 @@ const notificationIPN = (req, res) => {
   res.status(200).send(`OK! OrderStatus is ${orderStatus}`)
 }
 
-module.exports = { createPayment, validatePayment, notificationIPN };
+const token = async (req, res) => {
+  const { body, headers: { transactionid } } = req;
+
+  const options = {
+      host: 'testapi-pw.izipay.pe',
+      port: 443,
+      path: '/security/v1/Token/Generate',
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'transactionId': transactionid,
+      },
+      body: body,
+  };
+
+  const request = https.request(options, callback => {
+      callback.on('data', data => {
+          res.send(JSON.parse(data));
+      });
+  });
+
+  request.on('error', error => {
+      console.error(error);
+  });
+
+  if (req.body) request.write(JSON.stringify(req.body));
+  request.end();
+}
+
+const token2 = async  (req, res) => {
+  console.log("begin token2");
+  console.log(req.headers);
+  const { body, headers: { transactionid } } = req;
+  console.log('transactionid:'+transactionid);
+  /*
+  const paymentConf = {
+    amount: 10 * 100,
+    currency: "PEN",
+    customer: {
+      reference: "clienteId-12345",
+      email: "example@gmail.com",
+    },
+    orderId: `order-${ new Date().getTime() }`
+  }
+  */
+
+  try {
+    const response = await token2Service(body,transactionid);
+    if( response.status !== "SUCCESS") res.status(200).json(response); //return res.status(400).json(response);
+    else res.status(200).json(response.answer);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json(error)
+  }
+
+};
+module.exports = { createPayment, validatePayment, notificationIPN, token, token2 };
  

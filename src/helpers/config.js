@@ -4,6 +4,8 @@ dotenv.config();
 module.exports = { 
     config : () => {
         const MODE = process.env.MODE != 'PROD' ? true : false;
+        console.log("MODE:"+MODE);
+        console.log("process.env.ID_TIENDA:"+process.env.ID_TIENDA);
         return {
             MODE: process.env.MODE,
             ID_TIENDA: process.env.ID_TIENDA,
